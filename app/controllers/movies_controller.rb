@@ -14,6 +14,12 @@ class MoviesController < ApplicationController
     @movies = Movie.all
   end
 
+  def sorted_index
+    field = params[:field]
+    @movies = Movie.order(field)
+    render "index"
+  end
+
   def new
     # default: render 'new' template
   end

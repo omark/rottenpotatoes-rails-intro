@@ -15,6 +15,10 @@ Rails.application.routes.draw do
   #   resources :products
 
   resources :movies
+ 
+  
+  # Route for displaying sorted lists
+  get 'movies/sort/:field' => 'movies#sorted_index', as: 'sort_movie'
   
   # Example resource route with options:
   #   resources :products do
