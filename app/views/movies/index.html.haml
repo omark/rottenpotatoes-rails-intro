@@ -4,9 +4,15 @@
 %table#movies
   %thead
     %tr
-      %th#title_header= link_to 'Movie Title', sort_movie_path('title')
+      - if flash[:sorted] == 'title'
+        %th.hilite#title_header= link_to 'Movie Title', sort_movie_path('title')
+      - else
+        %th#title_header= link_to 'Movie Title', sort_movie_path('title')
       %th Rating
-      %th#release_date_header= link_to 'Release Date', sort_movie_path('release_date')
+      - if flash[:sorted] == 'release_date'
+        %th.hilite#release_date_header= link_to 'Release Date', sort_movie_path('release_date')
+      - else
+        %th#release_date_header= link_to 'Release Date', sort_movie_path('release_date')
       %th More Info
   %tbody
     - @movies.each do |movie|
