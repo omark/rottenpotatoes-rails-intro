@@ -11,14 +11,12 @@ class MoviesController < ApplicationController
   end
 
   def index
-    @movies = Movie.all
-  end
-
-  def sorted_index
-    field = params[:field]
-    @movies = Movie.order(field)
-    flash[:sorted] = field
-    render "index"
+    @sort_by = params[:sort_by]
+    if nil == @sort_by
+      @movies = Movie.all
+    else
+      @movies = Movie.order(@sort_by)
+    end
   end
 
   def new
