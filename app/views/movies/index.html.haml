@@ -1,7 +1,7 @@
 %h1 All Movies
 
 = form_tag movies_path, :method => :get, :id => 'ratings_form' do
-  = hidden_field_tag "title_sort", true if @title_hdr_classr
+  = hidden_field_tag "title_sort", true if @title_hdr_class
   = hidden_field_tag ":release_date_sort", true if @release_date_hdr_class
   Include:
   - @all_ratings.each do |rating|
