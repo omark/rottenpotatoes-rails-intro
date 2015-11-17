@@ -11,80 +11,29 @@ class MoviesController < ApplicationController
   end
 
   def index
-    # All available ratings
-    @all_ratings = Movie.select(:rating).map(&:rating).uniq
-    # All available movies
-    @movies = Movie.all
-    # Will have to redirect if update from session
-    redirect_required = false
-
-    if params[:ratings]
-      # If specified get ratings and save to session
-      logger.debug "Ratings from params"
-      ratings = params[:ratings]
-    elsif session[:ratings]
-      # If retrieved from session redirect
-      logger.debug "Ratings from session"
-      ratings = session[:ratings]
-      redirect_required = true
-    else
-      # If neither
-      # Create new hash, save to session, and redirect
-      logger.debug "Ratings from scratch"
-      ratings = Hash[@all_ratings.map {|r| [r, 1]}]
-      redirect_required = true
+    # Determine whether sorting by title or release date or not at all
+    sort_by = params[:sort_by] || session[:sort_by]
+    case sort_by
+    when 'title'
+      ordering, @title_hdr_class = {:title => :asc}, 'hilite'
+    when 'release_date'
+      ordering, @release_date_hdr_class = {:release_date => :asc}, 'hilite'
     end
-
-    # Update page to render ratings selection correctly
-    @filter_ratings = ratings.keys
-    if @filter_ratings.empty?
-      @filter_ratings = @all_ratings
+    # Determine whether filtering and how
+    @all_ratings = Movie.all_ratings
+    @filter_ratings = params[:ratings] || session[:ratings] || {}
+    # If no filter specified specify all (create hash similar to what is passed in)
+    if @filter_ratings == {}
+      @filter_ratings = Hash[@all_ratings.map {|rating| [rating, 1]}]
     end
-
-    if params[:sort_by]
-      # If specified get value
-      logger.debug "Sorting from params"
-      sort_by = params[:sort_by]
-    elsif flash[:sort_by]
-      # If retrieved from flash
-      logger.debug "Sorting from flash"
-      sort_by = flash[:sort_by]
-    else
-      # If neither set to None, save to session, and redirect
-      logger.debug "Sorting from scratch"
-      sort_by = 'None'
+    # If either sorting or filtering spec has changed save both and redirect
+    if params[:sort_by] != session[:sort_by] or params[:ratings] != session[:ratings]
+      session[:sort_by] = sort_by
+      session[:ratings] = @filter_ratings
+      redirect_to :sort_by => sort_by, :ratings => @filter_ratings and return
     end
-
-    if redirect_required == true
-      flash[:sort_by] = sort_by
-      logger.debug "Redirecting"
-      redirect_to movies_path(:ratings => ratings)
-    end
-
-    session[:ratings] = ratings
-
-    # filter based on filter ratings
-    @movies = @movies.where(rating: @filter_ratings)
-
-    # Sort if required
-    logger.debug "Sorting"
-    if sort_by != 'None'
-      @movies = @movies.order(sort_by)
-    end
-
-    # Hilite to match
-    if 'title' == sort_by
-      @title_hdr_class = 'hilite' 
-    elsif 'release_date' == sort_by
-      @release_date_hdr_class = 'hilite'
-    else
-      @title_hdr_class = 'nohilite'
-      @release_date_hdr_class = 'nohilite'
-    end
-
-    logger.debug "Filter ratings:"
-    @filter_ratings.each do |fb| logger.debug "#{fb}" end
-    logger.debug "Sort by: #{sort_by}"
+    # Filter movies by rating and sort
+    @movies = Movie.where(rating: @filter_ratings.keys).order(ordering)
   end
 
   def new
